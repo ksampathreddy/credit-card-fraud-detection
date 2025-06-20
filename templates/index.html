@@ -1,90 +1,695 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Real-Time Fraud Detection</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Card Fraud Detection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f7f7f7; padding: 20px; }
-        form { background-color: #fff; padding: 20px; border-radius: 10px; width: 600px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        input[type="text"], input[type="number"], input[type="date"] {
-            width: 95%; padding: 8px; margin: 5px 0 15px 0; border: 1px solid #ccc; border-radius: 5px;
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        label { font-weight: bold; display: block; margin-top: 10px; }
-        input[type="submit"] {
-            background-color: #4CAF50; color: white; padding: 10px 20px;
-            border: none; border-radius: 5px; cursor: pointer;
+        .header {
+            background-color: #343a40;
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
         }
-        h2, h3 { text-align: center; }
+        .card {
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border: none;
+            border-radius: 10px;
+        }
+        .card-header {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        .fraud {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .not-fraud {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .progress {
+            height: 25px;
+            margin-top: 10px;
+            border-radius: 12px;
+        }
+        .progress-bar {
+            transition: width 1s ease-in-out;
+        }
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            font-weight: 500;
+        }
+        .btn-primary:hover {
+            background-color: #0069d9;
+            border-color: #0062cc;
+        }
+        .result-card {
+            display: none;
+        }
+        .feature-input {
+            margin-bottom: 10px;
+        }
+        .model-card {
+            transition: transform 0.3s;
+        }
+        .model-card:hover {
+            transform: translateY(-5px);
+        }
+        .final-decision {
+            border-radius: 10px;
+        }
+        .demo-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .loading-spinner {
+            display: none;
+            margin: 20px auto;
+        }
+        .feature-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .form-section {
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
-    <h2>Real-Time Credit Card Fraud Detection</h2>
-    <form method="POST">
-        <label>Credit Card Number:</label>
-        <input type="text" name="cc_num" required>
+    <div class="header text-center">
+         <div class="container">
+            <h1><i class="bi bi-credit-card"></i> Credit Card Fraud Detection System</h1>
+            <p class="lead">Using State-of-the-Art Machine Learning and Deep Learning Algorithms</p>
+        </div>
+        <!-- <div class="container">
+            <h1><i class="bi bi-shield-lock"></i> Fraud Detection System</h1>
+            <p class="lead">Using Decision Tree, Logistic Regression, Random Forest, and CNN Models</p>
+        </div> -->
+    </div>
 
-        <label>Merchant Name:</label>
-        <input type="text" name="merchant" required>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-credit-card-2-front"></i> Transaction Details</span>
+                        <button class="btn btn-sm btn-outline-light demo-btn" id="demoBtn">
+                            <i class="bi bi-magic"></i> Demo Data
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <form id="transactionForm">
+                            <div class="form-section">
+                                <h5><i class="bi bi-credit-card"></i> Card Information</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="cc_num" class="form-label">Card Number</label>
+                                            <input type="text" class="form-control" id="cc_num" pattern="\d{16}" placeholder="16-digit card number">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="merchant" class="form-label">Merchant</label>
+                                            <input type="text" class="form-control" id="merchant" placeholder="Merchant name">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-        <label>Category:</label>
-        <input type="text" name="category" required>
+                            <div class="form-section">
+                                <h5><i class="bi bi-cash"></i> Transaction Details</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="amt" class="form-label">Amount ($)</label>
+                                            <input type="number" class="form-control" id="amt" step="0.01" min="0" placeholder="Transaction amount">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="category" class="form-label">Category</label>
+                                            <select class="form-select" id="category">
+                                                <option value="entertainment">Entertainment</option>
+                                                <option value="food_dining">Food & Dining</option>
+                                                <option value="gas_transport">Gas & Transport</option>
+                                                <option value="grocery_net">Grocery (Online)</option>
+                                                <option value="grocery_pos">Grocery (POS)</option>
+                                                <option value="health_fitness">Health & Fitness</option>
+                                                <option value="home">Home</option>
+                                                <option value="kids_pets">Kids & Pets</option>
+                                                <option value="misc_net">Misc (Online)</option>
+                                                <option value="misc_pos">Misc (POS)</option>
+                                                <option value="personal_care">Personal Care</option>
+                                                <option value="shopping_net">Shopping (Online)</option>
+                                                <option value="shopping_pos">Shopping (POS)</option>
+                                                <option value="travel">Travel</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="trans_date_trans_time" class="form-label">Transaction Date & Time</label>
+                                    <input type="datetime-local" class="form-control" id="trans_date_trans_time">
+                                </div>
+                            </div>
 
-        <label>Transaction Amount:</label>
-        <input type="number" step="0.01" name="amt" required>
+                            <div class="form-section">
+                                <h5><i class="bi bi-person"></i> Customer Information</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="first" class="form-label">First Name</label>
+                                            <input type="text" class="form-control" id="first" placeholder="First name">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="last" class="form-label">Last Name</label>
+                                            <input type="text" class="form-control" id="last" placeholder="Last name">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="gender" class="form-label">Gender</label>
+                                            <select class="form-select" id="gender">
+                                                <option value="M">Male</option>
+                                                <option value="F">Female</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="dob" class="form-label">Date of Birth</label>
+                                            <input type="date" class="form-control" id="dob">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="job" class="form-label">Occupation</label>
+                                    <input type="text" class="form-control" id="job" placeholder="Occupation">
+                                </div>
+                            </div>
 
-        <label>First Name:</label>
-        <input type="text" name="first" required>
+                            <div class="form-section">
+                                <h5><i class="bi bi-geo-alt"></i> Location Information</h5>
+                                <div class="mb-3">
+                                    <label for="street" class="form-label">Street Address</label>
+                                    <input type="text" class="form-control" id="street" placeholder="Street address">
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="city" class="form-label">City</label>
+                                            <input type="text" class="form-control" id="city" placeholder="City">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="state" class="form-label">State</label>
+                                            <input type="text" class="form-control" id="state" placeholder="State">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="zip" class="form-label">ZIP Code</label>
+                                            <input type="text" class="form-control" id="zip" placeholder="ZIP code">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="lat" class="form-label">Latitude</label>
+                                            <input type="number" class="form-control" id="lat" step="0.000001" placeholder="Customer latitude">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="long" class="form-label">Longitude</label>
+                                            <input type="number" class="form-control" id="long" step="0.000001" placeholder="Customer longitude">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="merch_lat" class="form-label">Merchant Latitude</label>
+                                            <input type="number" class="form-control" id="merch_lat" step="0.000001" placeholder="Merchant latitude">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="merch_long" class="form-label">Merchant Longitude</label>
+                                            <input type="number" class="form-control" id="merch_long" step="0.000001" placeholder="Merchant longitude">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-lg w-100 mt-3" id="submitBtn">
+                                <i class="bi bi-shield-lock"></i> Check for Fraud
+                            </button>
+                            
+                            <div class="text-center mt-3">
+                                <div class="spinner-border text-primary loading-spinner" role="status" id="loadingSpinner">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="card result-card" id="resultsCard">
+                    <div class="card-header">
+                        <i class="bi bi-graph-up"></i> Fraud Detection Results
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="bi bi-lightbulb"></i> <strong>Note:</strong> These results are based on multiple machine learning models.
+                        </div>
+                        
+                        <h5 class="mt-3"><i class="bi bi-speedometer2"></i> Model Predictions</h5>
+                        
+                        <div class="row" id="modelResults">
+                            <!-- Results will be inserted here by JavaScript -->
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h5><i class="bi bi-clipboard2-check"></i> Final Decision</h5>
+                            <div class="alert final-decision" id="finalDecision">
+                                <!-- Final decision will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <i class="bi bi-info-circle"></i> About This System
+                    </div>
+                    <div class="card-body">
+                        <p>This fraud detection system analyzes credit card transactions in real-time to identify potentially fraudulent activity using multiple machine learning models.</p>
+                        
+                        <p><strong>Models Used:</strong></p>
+                        <ul>
+                            <li><strong>Decision Tree:</strong> Simple tree-based model that makes decisions based on feature thresholds</li>
+                            <li><strong>Logistic Regression:</strong> Linear model that estimates probabilities using a logistic function</li>
+                            <li><strong>Random Forest:</strong> Ensemble of decision trees that provides robust predictions</li>
+                            <li><strong>CNN:</strong> Convolutional Neural Network that detects complex patterns in the data</li>
+                        </ul>
+                        
+                        <div class="alert alert-warning mt-3">
+                            <i class="bi bi-exclamation-triangle"></i> This system is for demonstration purposes only. Always verify suspicious transactions through official channels.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        <label>Last Name:</label>
-        <input type="text" name="last" required>
+    <footer class="bg-dark text-white text-center py-3 mt-5">
+        <div class="container">
+            <p class="mb-0">Credit Card Fraud Detection System  &copy; 2025 | Developed by Sampath Reddy Kamsani</p>
+        </div>
+    </footer>
 
-        <label>Gender (M/F):</label>
-        <input type="text" name="gender" required>
-
-        <label>Street Address:</label>
-        <input type="text" name="street" required>
-
-        <label>City:</label>
-        <input type="text" name="city" required>
-
-        <label>State:</label>
-        <input type="text" name="state" required>
-
-        <label>ZIP Code:</label>
-        <input type="number" name="zip" required>
-
-        <label>Latitude:</label>
-        <input type="text" name="lat" required>
-
-        <label>Longitude:</label>
-        <input type="text" name="long" required>
-
-        <label>City Population:</label>
-        <input type="number" name="city_pop" required>
-
-        <label>Job Title:</label>
-        <input type="text" name="job" required>
-
-        <label>Date of Birth:</label>
-        <input type="date" name="dob" required>
-
-        <label>Transaction ID:</label>
-        <input type="text" name="trans_num" required>
-
-        <label>Merchant Latitude:</label>
-        <input type="text" name="merch_lat" required>
-
-        <label>Merchant Longitude:</label>
-        <input type="text" name="merch_long" required>
-
-        <input type="submit" value="Predict Fraud">
-    </form>
-
-    {% if prediction is not none %}
-        <h3>Prediction Result: 
-            <span style="color: {{ 'red' if prediction else 'green' }};">
-                {{ 'FRAUD DETECTED 🚨' if prediction else 'NOT FRAUD ✅' }}
-            </span>
-        </h3>
-    {% endif %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const transactionForm = document.getElementById('transactionForm');
+            const resultsCard = document.getElementById('resultsCard');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const submitBtn = document.getElementById('submitBtn');
+            const demoBtn = document.getElementById('demoBtn');
+            
+            // Demo data function
+            function fillDemoData() {
+                // Card information
+                document.getElementById('cc_num').value = '4' + Math.floor(Math.random() * 1000000000000000).toString().padStart(15, '0');
+                document.getElementById('merchant').value = ['Walmart', 'Amazon', 'Target', 'Best Buy', 'Starbucks'][Math.floor(Math.random() * 5)];
+                
+                // Transaction details
+                document.getElementById('amt').value = (Math.random() * 500 + 1).toFixed(2);
+                const categories = [
+                    'entertainment', 'food_dining', 'gas_transport', 'grocery_net', 
+                    'grocery_pos', 'health_fitness', 'home', 'kids_pets', 
+                    'misc_net', 'misc_pos', 'personal_care', 'shopping_net', 
+                    'shopping_pos', 'travel'
+                ];
+                document.getElementById('category').value = categories[Math.floor(Math.random() * categories.length)];
+                
+                // Set transaction time to now
+                const now = new Date();
+                document.getElementById('trans_date_trans_time').value = now.toISOString().slice(0, 16);
+                
+                // Customer information
+                const firstNames = ['John', 'Jane', 'Robert', 'Emily', 'Michael', 'Sarah'];
+                const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia'];
+                const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+                const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+                document.getElementById('first').value = firstName;
+                document.getElementById('last').value = lastName;
+                document.getElementById('gender').value = Math.random() > 0.5 ? 'M' : 'F';
+                
+                // Random date of birth (18-80 years old)
+                const birthDate = new Date(
+                    now.getFullYear() - (18 + Math.floor(Math.random() * 62)),
+                    Math.floor(Math.random() * 12),
+                    Math.floor(Math.random() * 28) + 1
+                );
+                document.getElementById('dob').value = birthDate.toISOString().slice(0, 10);
+                document.getElementById('job').value = ['Engineer', 'Teacher', 'Doctor', 'Artist', 'Manager'][Math.floor(Math.random() * 5)];
+                
+                // Location information
+                document.getElementById('street').value = Math.floor(Math.random() * 1000) + ' Main St';
+                document.getElementById('city').value = ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix'][Math.floor(Math.random() * 5)];
+                document.getElementById('state').value = ['NY', 'CA', 'IL', 'TX', 'AZ'][Math.floor(Math.random() * 5)];
+                document.getElementById('zip').value = Math.floor(Math.random() * 90000) + 10000;
+                
+                // Random customer location (US coordinates)
+                const custLat = (37 + Math.random() * 10).toFixed(6);
+                const custLong = (-95 - Math.random() * 20).toFixed(6);
+                document.getElementById('lat').value = custLat;
+                document.getElementById('long').value = custLong;
+                
+                // Random merchant location (near customer)
+                document.getElementById('merch_lat').value = (parseFloat(custLat) + (Math.random() * 0.5 - 0.25)).toFixed(6);
+                document.getElementById('merch_long').value = (parseFloat(custLong) + (Math.random() * 0.5 - 0.25)).toFixed(6);
+                
+                // Show toast notification
+                showToast('Demo data loaded successfully', 'success');
+            }
+            
+            // Show toast notification
+            function showToast(message, type) {
+                const toastContainer = document.createElement('div');
+                toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
+                toastContainer.style.zIndex = '11';
+                
+                const toastClass = type === 'success' ? 'bg-success text-white' : 'bg-danger text-white';
+                
+                toastContainer.innerHTML = `
+                    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header ${toastClass}">
+                            <strong class="me-auto">Notification</strong>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body">
+                            ${message}
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(toastContainer);
+                
+                // Remove toast after 3 seconds
+                setTimeout(() => {
+                    toastContainer.remove();
+                }, 3000);
+            }
+            
+            // Fill demo data on button click
+            demoBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                fillDemoData();
+            });
+            
+            // Form submission
+            transactionForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Show loading state
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Analyzing...';
+                loadingSpinner.style.display = 'block';
+                resultsCard.style.display = 'none';
+                
+                // Collect form data
+                const formData = {
+                    cc_num: document.getElementById('cc_num').value || 'DEMO' + Math.floor(Math.random() * 10000000000000000).toString().padStart(16, '0'),
+                    merchant: document.getElementById('merchant').value || 'Demo Merchant',
+                    category: document.getElementById('category').value,
+                    amt: parseFloat(document.getElementById('amt').value),
+                    first: document.getElementById('first').value || 'Demo',
+                    last: document.getElementById('last').value || 'User',
+                    gender: document.getElementById('gender').value,
+                    street: document.getElementById('street').value || '123 Demo St',
+                    city: document.getElementById('city').value || 'Demo City',
+                    state: document.getElementById('state').value || 'DC',
+                    zip: document.getElementById('zip').value || '00000',
+                    lat: parseFloat(document.getElementById('lat').value),
+                    long: parseFloat(document.getElementById('long').value),
+                    job: document.getElementById('job').value || 'Demo Job',
+                    dob: document.getElementById('dob').value,
+                    merch_lat: parseFloat(document.getElementById('merch_lat').value),
+                    merch_long: parseFloat(document.getElementById('merch_long').value),
+                    trans_date_trans_time: document.getElementById('trans_date_trans_time').value || new Date().toISOString(),
+                    is_fraud: 0  // This is just for the structure
+                };
+                
+                try {
+                    // Send to server
+                    const response = await fetch('/predict', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(formData)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `Server returned status ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    displayResults(data);
+                    
+                    // Show results card with animation
+                    resultsCard.style.display = 'block';
+                    resultsCard.style.opacity = '0';
+                    resultsCard.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => {
+                        resultsCard.style.opacity = '1';
+                    }, 10);
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    
+                    // Show error message
+                    const modelResultsDiv = document.getElementById('modelResults');
+                    modelResultsDiv.innerHTML = `
+                        <div class="col-12">
+                            <div class="alert alert-danger">
+                                <i class="bi bi-exclamation-triangle"></i> Error: ${error.message}
+                                <br>Please check your input and try again.
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Show results card
+                    resultsCard.style.display = 'block';
+                    showToast('Error processing request', 'error');
+                    
+                } finally {
+                    // Reset button
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="bi bi-shield-lock"></i> Check for Fraud';
+                    loadingSpinner.style.display = 'none';
+                }
+            });
+            
+            function displayResults(results) {
+                const modelResultsDiv = document.getElementById('modelResults');
+                modelResultsDiv.innerHTML = '';
+                
+                let fraudCount = 0;
+                let totalModels = 0;
+                let highestProbability = 0;
+                let mostConfidentModel = '';
+                
+                // Process each model's results
+                for (const [modelName, result] of Object.entries(results)) {
+                    if (result.prediction === 'Error') {
+                        // Skip models with errors
+                        continue;
+                    }
+                    
+                    totalModels++;
+                    if (result.prediction === 'Fraud') fraudCount++;
+                    
+                    if (result.probability > highestProbability) {
+                        highestProbability = result.probability;
+                        mostConfidentModel = modelName;
+                    }
+                    
+                    const predictionClass = result.prediction === 'Fraud' ? 'fraud' : 'not-fraud';
+                    const icon = result.prediction === 'Fraud' ? 'bi-exclamation-triangle' : 'bi-check-circle';
+                    
+                    const modelDiv = document.createElement('div');
+                    modelDiv.className = 'col-md-6 mb-3';
+                    modelDiv.innerHTML = `
+                        <div class="card model-card h-100">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="bi ${icon} ${predictionClass}"></i> ${modelName}</h6>
+                                <p>Prediction: <span class="${predictionClass}">${result.prediction}</span></p>
+                                <p>Confidence: ${result.probability.toFixed(2)}%</p>
+                                <div class="progress">
+                                    <div class="progress-bar ${result.prediction === 'Fraud' ? 'bg-danger' : 'bg-success'}" 
+                                        role="progressbar" style="width: ${result.probability}%" 
+                                        aria-valuenow="${result.probability}" aria-valuemin="0" aria-valuemax="100">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    modelResultsDiv.appendChild(modelDiv);
+                }
+                
+                // Determine final decision (majority vote)
+                const finalDecisionDiv = document.getElementById('finalDecision');
+                
+                if (totalModels === 0) {
+                    finalDecisionDiv.className = 'alert alert-warning final-decision';
+                    finalDecisionDiv.innerHTML = `
+                        <h4 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> No Valid Predictions</h4>
+                        <p>All models returned errors. Please check the server logs.</p>
+                    `;
+                    showToast('All models failed to predict', 'error');
+                } else {
+                    const isFraud = fraudCount > totalModels / 2;
+                    
+                    if (isFraud) {
+                        finalDecisionDiv.className = 'alert alert-danger final-decision';
+                        finalDecisionDiv.innerHTML = `
+                            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> Fraud Detected!</h4>
+                            <p>${fraudCount} out of ${totalModels} models identified this transaction as fraudulent.</p>
+                            <p>The <strong>${mostConfidentModel}</strong> model was ${highestProbability.toFixed(2)}% confident in this prediction.</p>
+                            <hr>
+                            <p class="mb-0"><i class="bi bi-lightbulb"></i> This transaction should be flagged for manual review.</p>
+                        `;
+                        showToast('Potential fraud detected!', 'error');
+                    } else {
+                        finalDecisionDiv.className = 'alert alert-success final-decision';
+                        finalDecisionDiv.innerHTML = `
+                            <h4 class="alert-heading"><i class="bi bi-check-circle"></i> No Fraud Detected</h4>
+                            <p>Only ${fraudCount} out of ${totalModels} models identified this transaction as fraudulent.</p>
+                            <p>The <strong>${mostConfidentModel}</strong> model was ${(100 - highestProbability).toFixed(2)}% confident this is legitimate.</p>
+                            <hr>
+                            <p class="mb-0"><i class="bi bi-lightbulb"></i> This transaction appears to be legitimate.</p>
+                        `;
+                        showToast('No fraud detected', 'success');
+                    }
+                    
+                    // Add chart for visualization
+                    addResultsChart(results);
+                }
+            }
+            
+            function addResultsChart(results) {
+                // Remove existing chart if it exists
+                const oldCanvas = document.getElementById('resultsChart');
+                if (oldCanvas) {
+                    oldCanvas.remove();
+                }
+                
+                // Create canvas for chart
+                const canvas = document.createElement('canvas');
+                canvas.id = 'resultsChart';
+                canvas.style.maxHeight = '300px';
+                canvas.style.width = '100%';
+                
+                // Insert before final decision
+                const finalDecision = document.getElementById('finalDecision');
+                finalDecision.parentNode.insertBefore(canvas, finalDecision);
+                
+                // Prepare chart data
+                const modelNames = Object.keys(results).filter(name => results[name].prediction !== 'Error');
+                const probabilities = modelNames.map(name => results[name].probability);
+                const backgroundColors = modelNames.map(name => 
+                    results[name].prediction === 'Fraud' ? 'rgba(220, 53, 69, 0.7)' : 'rgba(40, 167, 69, 0.7)'
+                );
+                
+                // Create chart
+                new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: modelNames,
+                        datasets: [{
+                            label: 'Fraud Probability (%)',
+                            data: probabilities,
+                            backgroundColor: backgroundColors,
+                            borderColor: backgroundColors.map(color => color.replace('0.7', '1')),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                title: {
+                                    display: true,
+                                    text: 'Probability (%)'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Models'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const modelName = context.label;
+                                        const result = results[modelName];
+                                        return [
+                                            `Prediction: ${result.prediction}`,
+                                            `Confidence: ${result.probability.toFixed(2)}%`
+                                        ];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Fill with demo data on first load
+            fillDemoData();
+        });
+    </script>
 </body>
 </html>
