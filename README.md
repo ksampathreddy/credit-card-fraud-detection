@@ -1,8 +1,8 @@
 # Credit Card Fraud Detection System
 
 <!-- ![Fraud Detection Demo](demo.gif) <!-- Add a demo gif if available -->
-#Credit Card Fraud Detection Using State-of-Art Machine and Deeping Learning Algorithms
-A Model for detecting fraudulent credit card transactions using multiple algorithms including KNN, Decision Trees, Logistic Regression, Random Forest, and CNN.
+## Credit Card Fraud Detection Using State-of-Art Machine and Deeping Learning Algorithms
+## A Model for detecting fraudulent credit card transactions using multiple algorithms including KNN, Decision Trees, Logistic Regression, Random Forest, and CNN.
 
 ## Features
 
@@ -18,11 +18,10 @@ A Model for detecting fraudulent credit card transactions using multiple algorit
 - **Backend**: Python, Flask
 - **Frontend**: HTML, CSS, JavaScript, Bootstrap
 - **Machine Learning**:
-  - Scikit-learn (v1.6.1)
-  - TensorFlow (v2.8.0)
-  - XGBoost
+  - Scikit-learn 
+  - TensorFlow 
 - **Data Processing**: Pandas, NumPy
-- **Model Persistence**: Joblib
+
 
 ## Installation
 
