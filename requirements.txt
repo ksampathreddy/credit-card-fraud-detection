@@ -8,6 +8,9 @@ xgboost
 joblib
 gunicorn
 <<<<<<< HEAD
+<<<<<<< HEAD
 flask_cors
+=======
+>>>>>>> c881e8b1d38453bbbac0e89beff37d7c1fd444bb
 =======
 >>>>>>> c881e8b1d38453bbbac0e89beff37d7c1fd444bb
