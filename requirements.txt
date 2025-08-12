@@ -1,7 +1,13 @@
 flask
+flask_cors
 pandas
 numpy
 scikit-learn
 tensorflow
 xgboost
 joblib
+gunicorn
+<<<<<<< HEAD
+flask_cors
+=======
+>>>>>>> c881e8b1d38453bbbac0e89beff37d7c1fd444bb

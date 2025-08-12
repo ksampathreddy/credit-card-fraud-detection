@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="google.protobuf")
+
 from flask import Flask, request, jsonify, send_from_directory, render_template
 import pandas as pd
 import numpy as np
