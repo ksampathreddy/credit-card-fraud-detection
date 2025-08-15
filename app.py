@@ -1,7 +1,7 @@
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="google.protobuf")
 
-from flask import Flask, request, jsonify, send_from_directory, render_template
+from flask import Flask, request, jsonify, render_template
 import pandas as pd
 import numpy as np
 import joblib
@@ -16,17 +16,18 @@ CORS(app)
 
 # Load models and preprocessor
 try:
-    preprocessor = joblib.load('models/preprocessor.pkl')
-    # Verify preprocessor is fitted
+    models_dir = os.path.join(os.path.dirname(__file__), 'models')
+    preprocessor = joblib.load(os.path.join(models_dir, 'preprocessor.pkl'))
+    
     if not hasattr(preprocessor, 'transform'):
         raise ValueError("Preprocessor is not fitted!")
     
     ml_models = {
-        'Decision Tree': joblib.load('models/decision_tree.pkl'),
-        'Logistic Regression': joblib.load('models/logistic_regression.pkl'),
-        'Random Forest': joblib.load('models/random_forest.pkl')
+        'Decision Tree': joblib.load(os.path.join(models_dir, 'decision_tree.pkl')),
+        'Logistic Regression': joblib.load(os.path.join(models_dir, 'logistic_regression.pkl')),
+        'Random Forest': joblib.load(os.path.join(models_dir, 'random_forest.pkl'))
     }
-    cnn_model = tf.keras.models.load_model('models/cnn_fraud_detection.h5')
+    cnn_model = tf.keras.models.load_model(os.path.join(models_dir, 'cnn_fraud_detection.h5'))
     print("All models loaded successfully")
 except Exception as e:
     print(f"Error loading models: {str(e)}")
@@ -36,21 +37,43 @@ except Exception as e:
     preprocessor = None
 
 def preprocess_input(data):
-    # Create DataFrame from input
-    df = pd.DataFrame([data])
+    # Create DataFrame from input with proper type conversion
+    df = pd.DataFrame([{
+        'cc_num': str(data.get('cc_num', '')),
+        'merchant': str(data.get('merchant', '')),
+        'category': str(data.get('category', '')),
+        'amt': float(data.get('amt', 0)),
+        'first': str(data.get('first', '')),
+        'last': str(data.get('last', '')),
+        'gender': str(data.get('gender', 'M')),
+        'street': str(data.get('street', '')),
+        'city': str(data.get('city', '')),
+        'state': str(data.get('state', '')),
+        'zip': str(data.get('zip', '')),
+        'lat': float(data.get('lat', 0)),
+        'long': float(data.get('long', 0)),
+        'job': str(data.get('job', '')),
+        'dob': data.get('dob', ''),
+        'merch_lat': float(data.get('merch_lat', 0)),
+        'merch_long': float(data.get('merch_long', 0)),
+        'trans_date_trans_time': data.get('trans_date_trans_time', ''),
+        'is_fraud': 0
+    }])
     
-    # Feature engineering (must match training preprocessing)
     try:
         # Handle date parsing
-        df['dob'] = pd.to_datetime(df['dob'], format='mixed')
+        df['dob'] = pd.to_datetime(df['dob'], errors='coerce')
         df['age'] = (datetime.now() - df['dob']).dt.days // 365
         
         # Calculate distance
-        df['distance'] = np.sqrt((df['lat'] - df['merch_lat'])**2 + (df['long'] - df['merch_long'])**2)
+        df['distance'] = np.sqrt(
+            (df['lat'] - df['merch_lat'])**2 + 
+            (df['long'] - df['merch_long'])**2
+        )
         
-        # Create features
-        df['name_length'] = (df['first'] + df['last']).str.len()
-        df['amount_per_age'] = df['amt'] / (df['age'] + 1)
+        # Create features with explicit type handling
+        df['name_length'] = (df['first'].astype(str) + df['last'].astype(str)).str.len()
+        df['amount_per_age'] = df['amt'] / (df['age'].replace(0, 1))  # Avoid division by zero
         
         # Drop unnecessary columns
         cols_to_drop = ['first', 'last', 'street', 'city', 'state', 'zip', 'job', 'dob']
@@ -60,7 +83,7 @@ def preprocess_input(data):
     except Exception as e:
         print(f"Error in preprocessing: {str(e)}")
         print(traceback.format_exc())
-        raise
+        raise ValueError(f"Preprocessing failed: {str(e)}")
 
 @app.route('/')
 def index():
@@ -123,12 +146,16 @@ def predict():
                     'error': str(e)
                 }
         
-        return jsonify(results)
+        return jsonify(results), 200
     
     except Exception as e:
         print(f"Error in prediction endpoint: {str(e)}")
         print(traceback.format_exc())
-        return jsonify({'error': str(e)}), 500
+        return jsonify({
+            'error': str(e),
+            'trace': traceback.format_exc()
+        }), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
