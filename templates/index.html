@@ -340,57 +340,139 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // [Previous variable declarations remain the same]
-
+            const transactionForm = document.getElementById('transactionForm');
+            const resultsCard = document.getElementById('resultsCard');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const submitBtn = document.getElementById('submitBtn');
+            const demoBtn = document.getElementById('demoBtn');
+            
+            // Demo data function
             function fillDemoData() {
-                // [Previous demo data filling code remains the same]
+                // Card information
+                document.getElementById('cc_num').value = '4' + Math.floor(Math.random() * 1000000000000000).toString().padStart(15, '0');
+                document.getElementById('merchant').value = ['Walmart', 'Amazon', 'Target', 'Best Buy', 'Starbucks'][Math.floor(Math.random() * 5)];
+                
+                // Transaction details
+                document.getElementById('amt').value = (Math.random() * 500 + 1).toFixed(2);
+                const categories = [
+                    'entertainment', 'food_dining', 'gas_transport', 'grocery_net', 
+                    'grocery_pos', 'health_fitness', 'home', 'kids_pets', 
+                    'misc_net', 'misc_pos', 'personal_care', 'shopping_net', 
+                    'shopping_pos', 'travel'
+                ];
+                document.getElementById('category').value = categories[Math.floor(Math.random() * categories.length)];
+                
+                // Set transaction time to now
+                const now = new Date();
+                document.getElementById('trans_date_trans_time').value = now.toISOString().slice(0, 16);
+                
+                // Customer information
+                const firstNames = ['John', 'Jane', 'Robert', 'Emily', 'Michael', 'Sarah'];
+                const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia'];
+                const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+                const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+                document.getElementById('first').value = firstName;
+                document.getElementById('last').value = lastName;
+                document.getElementById('gender').value = Math.random() > 0.5 ? 'M' : 'F';
+                
+                // Random date of birth (18-80 years old)
+                const birthDate = new Date(
+                    now.getFullYear() - (18 + Math.floor(Math.random() * 62)),
+                    Math.floor(Math.random() * 12),
+                    Math.floor(Math.random() * 28) + 1
+                );
+                document.getElementById('dob').value = birthDate.toISOString().slice(0, 10);
+                document.getElementById('job').value = ['Engineer', 'Teacher', 'Doctor', 'Artist', 'Manager'][Math.floor(Math.random() * 5)];
+                
+                // Location information
+                document.getElementById('street').value = Math.floor(Math.random() * 1000) + ' Main St';
+                document.getElementById('city').value = ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix'][Math.floor(Math.random() * 5)];
+                document.getElementById('state').value = ['NY', 'CA', 'IL', 'TX', 'AZ'][Math.floor(Math.random() * 5)];
+                document.getElementById('zip').value = Math.floor(Math.random() * 90000) + 10000;
+                
+                // Random customer location (US coordinates)
+                const custLat = (37 + Math.random() * 10).toFixed(6);
+                const custLong = (-95 - Math.random() * 20).toFixed(6);
+                document.getElementById('lat').value = custLat;
+                document.getElementById('long').value = custLong;
+                
+                // Random merchant location (near customer)
+                document.getElementById('merch_lat').value = (parseFloat(custLat) + (Math.random() * 0.5 - 0.25)).toFixed(6);
+                document.getElementById('merch_long').value = (parseFloat(custLong) + (Math.random() * 0.5 - 0.25)).toFixed(6);
+                
+                // Show toast notification
+                showToast('Demo data loaded successfully', 'success');
             }
             
+            // Show toast notification
             function showToast(message, type) {
-                // [Previous toast function remains the same]
+                const toastContainer = document.createElement('div');
+                toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
+                toastContainer.style.zIndex = '11';
+                
+                const toastClass = type === 'success' ? 'bg-success text-white' : 'bg-danger text-white';
+                
+                toastContainer.innerHTML = `
+                    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header ${toastClass}">
+                            <strong class="me-auto">Notification</strong>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body">
+                            ${message}
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(toastContainer);
+                
+                // Remove toast after 3 seconds
+                setTimeout(() => {
+                    toastContainer.remove();
+                }, 3000);
             }
             
+            // Fill demo data on button click
             demoBtn.addEventListener('click', function(e) {
-                // [Previous demo button handler remains the same]
+                e.preventDefault();
+                fillDemoData();
             });
             
+            // Form submission
             transactionForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
-                if (!transactionForm.checkValidity()) {
-                    showToast('Please fill all required fields', 'error');
-                    return;
-                }
-                
+                // Show loading state
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Analyzing...';
                 loadingSpinner.style.display = 'block';
                 resultsCard.style.display = 'none';
                 
-                // Enhanced form data collection with type conversion
+                // Collect form data
                 const formData = {
-                    cc_num: document.getElementById('cc_num').value.toString(),
-                    merchant: document.getElementById('merchant').value.toString(),
-                    category: document.getElementById('category').value.toString(),
-                    amt: parseFloat(document.getElementById('amt').value) || 0,
-                    first: document.getElementById('first').value.toString(),
-                    last: document.getElementById('last').value.toString(),
-                    gender: document.getElementById('gender').value.toString(),
-                    street: document.getElementById('street').value.toString(),
-                    city: document.getElementById('city').value.toString(),
-                    state: document.getElementById('state').value.toString(),
-                    zip: document.getElementById('zip').value.toString(),
-                    lat: parseFloat(document.getElementById('lat').value) || 0,
-                    long: parseFloat(document.getElementById('long').value) || 0,
-                    job: document.getElementById('job').value.toString(),
-                    dob: document.getElementById('dob').value.toString(),
-                    merch_lat: parseFloat(document.getElementById('merch_lat').value) || 0,
-                    merch_long: parseFloat(document.getElementById('merch_long').value) || 0,
-                    trans_date_trans_time: document.getElementById('trans_date_trans_time').value.toString(),
-                    is_fraud: 0
+                    cc_num: document.getElementById('cc_num').value || 'DEMO' + Math.floor(Math.random() * 10000000000000000).toString().padStart(16, '0'),
+                    merchant: document.getElementById('merchant').value || 'Demo Merchant',
+                    category: document.getElementById('category').value,
+                    amt: parseFloat(document.getElementById('amt').value),
+                    first: document.getElementById('first').value || 'Demo',
+                    last: document.getElementById('last').value || 'User',
+                    gender: document.getElementById('gender').value,
+                    street: document.getElementById('street').value || '123 Demo St',
+                    city: document.getElementById('city').value || 'Demo City',
+                    state: document.getElementById('state').value || 'DC',
+                    zip: document.getElementById('zip').value || '00000',
+                    lat: parseFloat(document.getElementById('lat').value),
+                    long: parseFloat(document.getElementById('long').value),
+                    job: document.getElementById('job').value || 'Demo Job',
+                    dob: document.getElementById('dob').value,
+                    merch_lat: parseFloat(document.getElementById('merch_lat').value),
+                    merch_long: parseFloat(document.getElementById('merch_long').value),
+                    trans_date_trans_time: document.getElementById('trans_date_trans_time').value || new Date().toISOString(),
+                    is_fraud: 0  // This is just for the structure
                 };
                 
                 try {
+                    // Send to server
                     const response = await fetch('/predict', {
                         method: 'POST',
                         headers: {
@@ -400,15 +482,14 @@
                     });
                     
                     if (!response.ok) {
-                        const errorText = await response.text();
-                        throw new Error(errorText || `Server error: ${response.status}`);
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `Server returned status ${response.status}`);
                     }
                     
                     const data = await response.json();
-                    if (!data) throw new Error("Empty response from server");
-                    
                     displayResults(data);
                     
+                    // Show results card with animation
                     resultsCard.style.display = 'block';
                     resultsCard.style.opacity = '0';
                     resultsCard.style.transition = 'opacity 0.5s ease';
@@ -418,20 +499,24 @@
                     
                 } catch (error) {
                     console.error('Error:', error);
+                    
+                    // Show error message
                     const modelResultsDiv = document.getElementById('modelResults');
                     modelResultsDiv.innerHTML = `
                         <div class="col-12">
                             <div class="alert alert-danger">
-                                <i class="bi bi-exclamation-triangle"></i> ${error.message}
-                                <button class="btn btn-sm btn-outline-danger float-end" onclick="location.reload()">
-                                    <i class="bi bi-arrow-clockwise"></i> Try Again
-                                </button>
+                                <i class="bi bi-exclamation-triangle"></i> Error: ${error.message}
+                                <br>Please check your input and try again.
                             </div>
                         </div>
                     `;
+                    
+                    // Show results card
                     resultsCard.style.display = 'block';
                     showToast('Error processing request', 'error');
+                    
                 } finally {
+                    // Reset button
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i class="bi bi-shield-lock"></i> Check for Fraud';
                     loadingSpinner.style.display = 'none';
@@ -447,8 +532,12 @@
                 let highestProbability = 0;
                 let mostConfidentModel = '';
                 
+                // Process each model's results
                 for (const [modelName, result] of Object.entries(results)) {
-                    if (result.prediction === 'Error') continue;
+                    if (result.prediction === 'Error') {
+                        // Skip models with errors
+                        continue;
+                    }
                     
                     totalModels++;
                     if (result.prediction === 'Fraud') fraudCount++;
@@ -461,67 +550,92 @@
                     const predictionClass = result.prediction === 'Fraud' ? 'fraud' : 'not-fraud';
                     const icon = result.prediction === 'Fraud' ? 'bi-exclamation-triangle' : 'bi-check-circle';
                     
-                    modelResultsDiv.innerHTML += `
-                        <div class="col-md-6 mb-3">
-                            <div class="card model-card h-100">
-                                <div class="card-body">
-                                    <h6 class="card-title"><i class="bi ${icon} ${predictionClass}"></i> ${modelName}</h6>
-                                    <p>Prediction: <span class="${predictionClass}">${result.prediction}</span></p>
-                                    <p>Confidence: ${result.probability.toFixed(2)}%</p>
-                                    <div class="progress">
-                                        <div class="progress-bar ${result.prediction === 'Fraud' ? 'bg-danger' : 'bg-success'}" 
-                                            role="progressbar" style="width: ${result.probability}%" 
-                                            aria-valuenow="${result.probability}" aria-valuemin="0" aria-valuemax="100">
-                                        </div>
+                    const modelDiv = document.createElement('div');
+                    modelDiv.className = 'col-md-6 mb-3';
+                    modelDiv.innerHTML = `
+                        <div class="card model-card h-100">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="bi ${icon} ${predictionClass}"></i> ${modelName}</h6>
+                                <p>Prediction: <span class="${predictionClass}">${result.prediction}</span></p>
+                                <p>Confidence: ${result.probability.toFixed(2)}%</p>
+                                <div class="progress">
+                                    <div class="progress-bar ${result.prediction === 'Fraud' ? 'bg-danger' : 'bg-success'}" 
+                                        role="progressbar" style="width: ${result.probability}%" 
+                                        aria-valuenow="${result.probability}" aria-valuemin="0" aria-valuemax="100">
                                     </div>
                                 </div>
                             </div>
                         </div>
                     `;
+                    
+                    modelResultsDiv.appendChild(modelDiv);
                 }
                 
+                // Determine final decision (majority vote)
                 const finalDecisionDiv = document.getElementById('finalDecision');
+                
                 if (totalModels === 0) {
                     finalDecisionDiv.className = 'alert alert-warning final-decision';
                     finalDecisionDiv.innerHTML = `
                         <h4 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> No Valid Predictions</h4>
-                        <p>All models returned errors. Please try again.</p>
+                        <p>All models returned errors. Please check the server logs.</p>
                     `;
+                    showToast('All models failed to predict', 'error');
                 } else {
                     const isFraud = fraudCount > totalModels / 2;
-                    finalDecisionDiv.className = `alert alert-${isFraud ? 'danger' : 'success'} final-decision`;
-                    finalDecisionDiv.innerHTML = `
-                        <h4 class="alert-heading">
-                            <i class="bi ${isFraud ? 'bi-exclamation-triangle' : 'bi-check-circle'}"></i> 
-                            ${isFraud ? 'Fraud Detected!' : 'No Fraud Detected'}
-                        </h4>
-                        <p>${fraudCount} out of ${totalModels} models identified this as ${isFraud ? 'fraudulent' : 'legitimate'}</p>
-                        <p>Most confident model: <strong>${mostConfidentModel}</strong> (${highestProbability.toFixed(2)}%)</p>
-                        <hr>
-                        <p class="mb-0"><i class="bi bi-lightbulb"></i> 
-                            ${isFraud ? 'This transaction should be reviewed.' : 'This transaction appears legitimate.'}
-                        </p>
-                    `;
+                    
+                    if (isFraud) {
+                        finalDecisionDiv.className = 'alert alert-danger final-decision';
+                        finalDecisionDiv.innerHTML = `
+                            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> Fraud Detected!</h4>
+                            <p>${fraudCount} out of ${totalModels} models identified this transaction as fraudulent.</p>
+                            <p>The <strong>${mostConfidentModel}</strong> model was ${highestProbability.toFixed(2)}% confident in this prediction.</p>
+                            <hr>
+                            <p class="mb-0"><i class="bi bi-lightbulb"></i> This transaction should be flagged for manual review.</p>
+                        `;
+                        showToast('Potential fraud detected!', 'error');
+                    } else {
+                        finalDecisionDiv.className = 'alert alert-success final-decision';
+                        finalDecisionDiv.innerHTML = `
+                            <h4 class="alert-heading"><i class="bi bi-check-circle"></i> No Fraud Detected</h4>
+                            <p>Only ${fraudCount} out of ${totalModels} models identified this transaction as fraudulent.</p>
+                            <p>The <strong>${mostConfidentModel}</strong> model was ${(100 - highestProbability).toFixed(2)}% confident this is legitimate.</p>
+                            <hr>
+                            <p class="mb-0"><i class="bi bi-lightbulb"></i> This transaction appears to be legitimate.</p>
+                        `;
+                        showToast('No fraud detected', 'success');
+                    }
+                    
+                    // Add chart for visualization
                     addResultsChart(results);
                 }
             }
             
             function addResultsChart(results) {
+                // Remove existing chart if it exists
                 const oldCanvas = document.getElementById('resultsChart');
-                if (oldCanvas) oldCanvas.remove();
+                if (oldCanvas) {
+                    oldCanvas.remove();
+                }
                 
+                // Create canvas for chart
                 const canvas = document.createElement('canvas');
                 canvas.id = 'resultsChart';
                 canvas.style.maxHeight = '300px';
                 canvas.style.width = '100%';
-                document.getElementById('finalDecision').before(canvas);
                 
+                // Insert before final decision
+                const finalDecision = document.getElementById('finalDecision');
+                finalDecision.parentNode.insertBefore(canvas, finalDecision);
+                
+                // Prepare chart data
                 const modelNames = Object.keys(results).filter(name => results[name].prediction !== 'Error');
                 const probabilities = modelNames.map(name => results[name].probability);
                 const backgroundColors = modelNames.map(name => 
                     results[name].prediction === 'Fraud' ? 'rgba(220, 53, 69, 0.7)' : 'rgba(40, 167, 69, 0.7)'
                 );
                 
+                // Create chart
                 new Chart(canvas, {
                     type: 'bar',
                     data: {
@@ -530,22 +644,37 @@
                             label: 'Fraud Probability (%)',
                             data: probabilities,
                             backgroundColor: backgroundColors,
-                            borderColor: backgroundColors.map(c => c.replace('0.7', '1')),
+                            borderColor: backgroundColors.map(color => color.replace('0.7', '1')),
                             borderWidth: 1
                         }]
                     },
                     options: {
                         responsive: true,
                         scales: {
-                            y: { beginAtZero: true, max: 100, title: { display: true, text: 'Probability (%)' } },
-                            x: { title: { display: true, text: 'Models' } }
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                title: {
+                                    display: true,
+                                    text: 'Probability (%)'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Models'
+                                }
+                            }
                         },
                         plugins: {
-                            legend: { display: false },
+                            legend: {
+                                display: false
+                            },
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
-                                        const result = results[context.label];
+                                        const modelName = context.label;
+                                        const result = results[modelName];
                                         return [
                                             `Prediction: ${result.prediction}`,
                                             `Confidence: ${result.probability.toFixed(2)}%`
@@ -558,6 +687,7 @@
                 });
             }
             
+            // Fill with demo data on first load
             fillDemoData();
         });
     </script>
