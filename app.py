@@ -88,6 +88,26 @@ def preprocess_input(data):
 @app.route('/')
 def index():
     return render_template('index.html')
+@app.route('/metrics')
+def show_metrics():
+    try:
+        with open('evaluation/model_evaluations.json', 'r') as f:
+            evaluations = json.load(f)
+        
+        # Create a simplified version for the web
+        web_metrics = {}
+        for model_name, metrics in evaluations.items():
+            web_metrics[model_name] = {
+                'accuracy': round(metrics['accuracy'] * 100, 2),
+                'precision': round(metrics['precision'] * 100, 2),
+                'recall': round(metrics['recall'] * 100, 2),
+                'f1_score': round(metrics['f1_score'] * 100, 2),
+                'roc_auc': round(metrics['roc_auc'] * 100, 2)
+            }
+        
+        return jsonify(web_metrics)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -159,3 +179,4 @@ def predict():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+

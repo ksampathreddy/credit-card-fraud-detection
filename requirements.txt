@@ -8,3 +8,5 @@ xgboost
 joblib
 gunicorn
 flask_cors
+matplotlib
+seaborn
